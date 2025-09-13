@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: Todo API Specification
+  version: '262'
+  description: API documentation for the Todo bounded context.
+servers:
+  - url: /api/v1
+    description: Development Server
+tags:
+  - name: Todo
+    description: Operations related to the Todo bounded context.
+paths:
+  /create-todo:
+    post:
+      summary: Create Todo
+      description: Executes the "Create Todo" command. ...
+      operationId: createTodo
+      tags:
+        - Todo
+      responses:
+        '200':
+          description: 'OK: The resource was updated successfully.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTodoRequest'
+  /complete-todo:
+    post:
+      summary: Complete Todo
+      description: Executes the "Complete Todo" command. ...
+      operationId: completeTodo
+      tags:
+        - Todo
+      responses:
+        '200':
+          description: 'OK: The resource was updated successfully.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteTodoRequest'
+  /delete-todo:
+    post:
+      summary: Delete Todo
+      description: Executes the "Delete Todo" command. ...
+      operationId: deleteTodo
+      tags:
+        - Todo
+      responses:
+        '200':
+          description: 'OK: The resource was updated successfully.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteTodoRequest'
+  /update-todo-description:
+    post:
+      summary: Update Todo Description
+      description: Executes the "Update Todo Description" command. ...
+      operationId: updateTodoDescription
+      tags:
+        - Todo
+      responses:
+        '200':
+          description: 'OK: The resource was updated successfully.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTodoDescriptionRequest'
+  /get-all-todos:
+    get:
+      summary: Get All Todos
+      description: Retrieves data based on the "Get All Todos" query. This is a synchronous query operation.
+      operationId: getAllTodos
+      tags:
+        - Todo
+      responses:
+        '200':
+          description: Successful retrieval of data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /get-todo-by-id/{id}:
+    get:
+      summary: Get Todo by ID
+      description: Retrieves data based on the "Get Todo by ID" query. This is a synchronous query operation.
+      operationId: getTodoByID
+      tags:
+        - Todo
+      responses:
+        '200':
+          description: Successful retrieval of data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: An error occurred.
+    Todo:
+      type: object
+      description: Represents a Todo in the system.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the Todo (primary key).
+          example: todo-abc-123
+        description:
+          type: string
+          description: The description of the Todo.
+          example: Plan weekly team meeting
+        dueDate:
+          type: string
+          description: The dueDate of the Todo.
+          example: '2023-11-01T10:00:00Z'
+        priority:
+          type: string
+          description: The priority of the Todo.
+          example: High
+        isCompleted:
+          type: string
+          description: The isCompleted of the Todo.
+          example: 'true'
+      required:
+        - id
+        - description
+    CreateTodoRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          example: todo-abc-123
+        description:
+          type: string
+          example: Plan weekly team meeting
+        dueDate:
+          type: string
+          example: '2023-11-01T10:00:00Z'
+        priority:
+          type: string
+          example: High
+      required:
+        - id
+        - description
+    CompleteTodoRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          example: todo-abc-123
+        isCompleted:
+          type: string
+          example: 'true'
+      required:
+        - id
+    DeleteTodoRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          example: todo-abc-123
+      required:
+        - id
+    UpdateTodoDescriptionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          example: todo-abc-123
+        description:
+          type: string
+          example: Plan weekly team meeting
+        dueDate:
+          type: string
+          example: '2023-11-01T10:00:00Z'
+        priority:
+          type: string
+          example: High
+      required:
+        - id
+        - description
+  parameters:
+    TodoId:
+      name: id
+      in: path
+      required: true
+      description: The unique identifier for the Todo.
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: 'Bad Request: The server cannot or will not process the request due to something that is perceived to be a client error.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 'Not Found: The server can not find the requested resource.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: 'Internal Server Error: The server has encountered a situation it doesn''t know how to handle.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
