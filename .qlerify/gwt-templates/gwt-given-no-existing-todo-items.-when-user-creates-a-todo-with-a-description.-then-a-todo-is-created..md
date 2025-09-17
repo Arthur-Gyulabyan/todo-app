@@ -27,13 +27,14 @@ You will receive:
       - Use `import.meta.url` and `path.resolve()` to load the `.feature` file.
       - The Express app is assumed to be exported from `src/bootstrap/app.js`.
    - **Data Handling:**
-      - When creating a new entity (e.g., in a "Given" step), never include the `id` field in the request payload. IDs are always assigned by the backend.
+      - **ID Generation (Critical Exception):** For **`create`** operations, you **MUST NOT** include the `id` field in the request payload, even if the OpenAPI specification includes it. This is a specific rule that **overrides** the "OpenAPI is Truth" rule. The backend is always responsible for generating IDs.
       - Never assume an entity exists unless explicitly stated in a "Given" step.
       - Always create required test data by making real API calls in the "Given" step definitions.
       - Never hardcode IDs. Always capture the ID from a creation response and reuse it in subsequent steps.
    - **Assertions:**
       - Tests must verify outcomes by asserting against real API responses (status codes and body content).
       - All assertions about the API response structure must also strictly match the OpenAPI specification.
+      - Available status codes for all operations are: **200**, **400** and **404**.
    - **Date:**
       - The current date is **{{ CURRENT_DATE }}** and should be used where relevant.
 

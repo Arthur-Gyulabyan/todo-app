@@ -21,7 +21,7 @@ You will receive:
    - The query logic, including any specific data filtering or transformations, must come **strictly from the `allDescriptions` array**.
    - Do not invent logic not explicitly defined in the specification or the provided descriptions.
    - Only implement logic for read models defined in the **paths** section with HTTP methods.
-   - Use only status codes: **200** and **400**.
+   - Use only status codes: **200**, **400** and **404**.
 
 4. **Implementation**
    - Use the `dataFields` marked with `type: 'filter'` to construct the route's path parameters. Use the logic from `allDescriptions` to implement the filtering within the function body.

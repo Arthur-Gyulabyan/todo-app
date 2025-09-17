@@ -4,17 +4,22 @@ import GetTodoByIdReadModel from '../../../domain/readmodel/GetTodoByIdReadModel
 const router = express.Router();
 
 router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ message: 'Invalid id' });
+  }
+
   try {
-    const { id } = req.params;
     const todo = await GetTodoByIdReadModel.query(id);
 
-    if (todo) {
-      res.status(200).json(todo);
-    } else {
-      res.status(400).json({ message: 'Todo not found.' });
+    if (!todo) {
+      return res.status(404).json({ message: 'Not Found' });
     }
+
+    return res.status(200).json(todo);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    return res.status(400).json({ message: err.message });
   }
 });
 

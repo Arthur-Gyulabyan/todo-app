@@ -5,12 +5,18 @@ const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
-    const { id, description, dueDate, priority } = req.body;
+    const { id, description } = req.body || {};
+    if (typeof id !== 'string' || typeof description !== 'string') {
+      return res.status(400).json({ message: 'Invalid request body.' });
+    }
 
-    const result = await UpdateTodoDescriptionCommand.execute({ id, description, dueDate, priority });
-    res.status(200).json(result);
+    const result = await UpdateTodoDescriptionCommand.execute({ id, description });
+    return res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err.status === 404) {
+      return res.status(404).json({ message: err.message || 'Not Found' });
+    }
+    return res.status(400).json({ message: err.message || 'Bad Request' });
   }
 });
 

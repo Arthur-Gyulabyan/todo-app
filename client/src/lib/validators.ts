@@ -1,37 +1,29 @@
 import { z } from "zod";
 
-export const todoPriorities = ["Low", "Medium", "High"] as const;
+export const errorSchema = z.object({
+  message: z.string(),
+});
 
 export const todoSchema = z.object({
-  id: z.string().min(1, "ID is required"),
+  id: z.string(),
   description: z.string().min(1, "Description is required"),
-  dueDate: z.string().datetime().optional(), // OpenAPI example is datetime string
-  priority: z.enum(todoPriorities).optional(),
+  dueDate: z.string().optional(),
+  priority: z.string().optional(),
 });
 
-export const createTodoRequestSchema = z.object({
-  // ID is omitted here as per requirement "ID will be set on backend, do not include them in the forms."
-  description: z.string().min(1, "Description is required"),
-  dueDate: z.string().datetime().optional(),
-  priority: z.enum(todoPriorities).optional(),
+export const createTodoSchema = todoSchema.omit({ id: true });
+
+export const deleteTodoSchema = z.object({
+  id: z.string(),
 });
 
-export const updateTodoDescriptionRequestSchema = z.object({
-  id: z.string().min(1, "Todo ID is required"),
+export const updateTodoDescriptionSchema = z.object({
+  id: z.string(),
   description: z.string().min(1, "Description is required"),
-  dueDate: z.string().datetime().optional(),
-  priority: z.enum(todoPriorities).optional(),
-});
-
-export const deleteTodoRequestSchema = z.object({
-  id: z.string().min(1, "Todo ID is required"),
 });
 
 export type Todo = z.infer<typeof todoSchema>;
-export type CreateTodoRequest = z.infer<typeof createTodoRequestSchema>;
-export type UpdateTodoDescriptionRequest = z.infer<typeof updateTodoDescriptionRequestSchema>;
-export type DeleteTodoRequest = z.infer<typeof deleteTodoRequestSchema>;
-
-export type ErrorResponse = {
-  message: string;
-};
+export type CreateTodoInput = z.infer<typeof createTodoSchema>;
+export type DeleteTodoInput = z.infer<typeof deleteTodoSchema>;
+export type UpdateTodoDescriptionInput = z.infer<typeof updateTodoDescriptionSchema>;
+export type ApiError = z.infer<typeof errorSchema>;

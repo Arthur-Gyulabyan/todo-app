@@ -1,38 +1,32 @@
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
 const BASE_URL = "/api/v1";
 
-interface RequestOptions extends RequestInit {
-  data?: unknown;
+async function request<T>(path: string, method: HttpMethod, body?: unknown): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!res.ok) {
+    const message = data?.message || `Request failed with status ${res.status}`;
+    throw new Error(message);
+  }
+
+  return data as T;
 }
 
-const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || `API error: ${response.statusText}`);
-  }
-  return response.json();
-};
-
 export const api = {
-  get: async <T>(path: string): Promise<T> => {
-    const response = await fetch(`${BASE_URL}${path}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    return handleResponse(response);
-  },
-
-  post: async <T>(path: string, data: unknown): Promise<T> => {
-    const response = await fetch(`${BASE_URL}${path}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    return handleResponse(response);
-  },
-  // Add put, delete, patch if needed based on the OpenAPI spec.
-  // For this spec, update and delete are POST requests, so no other methods are strictly needed.
+  get: <T>(path: string) => request<T>(path, "GET"),
+  post: <T>(path: string, body?: unknown) => request<T>(path, "POST", body),
+  put: <T>(path: string, body?: unknown) => request<T>(path, "PUT", body),
+  patch: <T>(path: string, body?: unknown) => request<T>(path, "PATCH", body),
+  delete: <T>(path: string, body?: unknown) => request<T>(path, "DELETE", body),
 };

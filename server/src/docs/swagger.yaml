@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Todo API Specification
-  version: '278'
+  version: '307'
   description: API documentation for the Todo bounded context.
 servers:
   - url: /api/v1
@@ -48,6 +48,8 @@ paths:
                 $ref: '#/components/schemas/Todo'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
       requestBody:
         required: true
         content:
@@ -70,6 +72,8 @@ paths:
                 $ref: '#/components/schemas/Todo'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
       requestBody:
         required: true
         content:
@@ -110,6 +114,8 @@ paths:
                 $ref: '#/components/schemas/Todo'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
       parameters:
         - in: path
           name: id
@@ -182,12 +188,6 @@ components:
         description:
           type: string
           example: Plan weekly team meeting
-        dueDate:
-          type: string
-          example: '2023-11-01T10:00:00Z'
-        priority:
-          type: string
-          example: High
       required:
         - id
         - description

@@ -23,7 +23,7 @@ You will receive:
    - Do not invent fields, structures, or logic not explicitly defined in the specification.
    - Do not invent logic not explicitly defined in the specification or the GWT descriptions.
    - Only implement logic for commands defined in the **paths** section with HTTP methods.
-   - Use only status codes: **200** and **400**.
+   - Use only status codes: **200**, **400** and **404**.
 
 4. **Implementation**
    - Assume that Entity classes (e.g., `new Todo(...)`) expect objects whose property names and casing already match the OpenAPI specification's schemas. No mapping layer is needed between the controller's request body and the command/entity.

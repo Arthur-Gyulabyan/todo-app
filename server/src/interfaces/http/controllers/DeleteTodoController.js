@@ -5,15 +5,23 @@ const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
-    const { id } = req.body; // Extract id from request body as per OpenAPI spec
+    const { id } = req.body || {};
+    if (typeof id !== 'string' || id.trim() === '') {
+      return res.status(400).json({ message: 'Invalid request body.' });
+    }
+
     const result = await DeleteTodoCommand.execute({ id });
-    res.status(200).json(result); // 200 OK for successful deletion (returns deleted item)
+    if (!result) {
+      return res.status(404).json({ message: 'Not Found' });
+    }
+
+    return res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message }); // 400 Bad Request for errors (e.g., not found)
+    return res.status(400).json({ message: err?.message || 'An error occurred.' });
   }
 });
 
 export default {
-  routeBase: '/delete-todo', // Base route from OpenAPI path
+  routeBase: '/delete-todo',
   router,
 };
