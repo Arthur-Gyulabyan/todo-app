@@ -1,122 +1,91 @@
-import { FC, useState } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { EllipsisVertical, Edit, Trash2 } from "lucide-react";
+
+import { DataTable } from "@/components/shared/DataTable";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PenLine, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/shared/DataTable";
 import { Todo } from "@/lib/validators";
-import { useCompleteTodo, useGetAllTodos } from "@/api/todos";
-import { EditTodoDialog } from "./EditTodoDialog";
-import { DeleteTodoAlertDialog } from "./DeleteTodoAlertDialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useGetAllTodos } from "@/api/todos";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { UpdateTodoForm } from "./UpdateTodoForm";
+import { DeleteTodoDialog } from "./DeleteTodoDialog";
+import { Badge } from "@/components/ui/badge";
 
-export const TodoTable: FC = () => {
-  const { data: todos, isLoading, isError, error } = useGetAllTodos();
-  const completeTodoMutation = useCompleteTodo();
+export const TodoTable = () => {
+  const { data: todos, isLoading, isError } = useGetAllTodos();
 
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
 
   const handleEditClick = (todo: Todo) => {
     setSelectedTodo(todo);
-    setIsEditDialogOpen(true);
+    setIsUpdateDialogOpen(true);
   };
 
-  const handleCompleteChange = (todo: Todo, checked: boolean) => {
-    completeTodoMutation.mutate({ id: todo.id, isCompleted: checked });
+  const handleDeleteClick = (todo: Todo) => {
+    setSelectedTodo(todo);
+    setIsDeleteDialogOpen(true);
   };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="text-red-500 p-4 border border-red-200 rounded-md">
-        <h3 className="font-semibold">Error loading todos:</h3>
-        <p>{error?.message || "An unknown error occurred."}</p>
-      </div>
-    );
-  }
 
   const columns = [
     {
-      key: "isCompleted",
-      header: "Completed",
-      className: "w-[80px] text-center",
-      render: (todo: Todo) => (
-        <Checkbox
-          checked={todo.isCompleted}
-          onCheckedChange={(checked) =>
-            handleCompleteChange(todo, checked as boolean)
-          }
-          aria-label="Mark todo as complete"
-          disabled={completeTodoMutation.isPending}
-        />
-      ),
-    },
-    {
       key: "description",
       header: "Description",
-      render: (todo: Todo) => (
-        <span className={todo.isCompleted ? "line-through text-muted-foreground" : ""}>
-          {todo.description}
-        </span>
-      ),
-    },
-    {
-      key: "dueDate",
-      header: "Due Date",
-      render: (todo: Todo) =>
-        todo.dueDate ? format(new Date(todo.dueDate), "PPP") : "N/A",
+      cell: (row: Todo) => <span className="font-medium">{row.description}</span>,
+      className: "w-1/2",
     },
     {
       key: "priority",
       header: "Priority",
-      render: (todo: Todo) => {
+      cell: (row: Todo) => {
         let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-        if (todo.priority === "High") variant = "destructive";
-        if (todo.priority === "Medium") variant = "default";
+        if (row.priority === "High") variant = "destructive";
+        if (row.priority === "Medium") variant = "default";
+        if (row.priority === "Low") variant = "outline";
         return (
-          <Badge variant={variant}>
-            {todo.priority || "None"}
-          </Badge>
+          <Badge variant={variant}>{row.priority || "N/A"}</Badge>
         );
       },
+      className: "w-1/6",
+    },
+    {
+      key: "dueDate",
+      header: "Due Date",
+      cell: (row: Todo) =>
+        row.dueDate ? format(new Date(row.dueDate), "PPP") : "No due date",
+      className: "w-1/6",
     },
     {
       key: "actions",
-      header: "Actions",
-      className: "text-right",
-      render: (todo: Todo) => (
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-blue-500"
-            onClick={() => handleEditClick(todo)}
-          >
-            <PenLine className="h-4 w-4" />
-          </Button>
-          <DeleteTodoAlertDialog todo={todo} />
-        </div>
+      header: <span className="sr-only">Actions</span>,
+      cell: (row: Todo) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <EllipsisVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEditClick(row)} className="cursor-pointer">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDeleteClick(row)} className="text-destructive focus:text-destructive cursor-pointer">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
+      className: "text-right",
     },
   ];
 
@@ -127,14 +96,38 @@ export const TodoTable: FC = () => {
         columns={columns}
         isLoading={isLoading}
         isError={isError}
-        error={error}
-        emptyMessage="You have no todos yet. Click 'Create Todo' to add one!"
+        emptyMessage="No todos found. Start by creating one!"
       />
+
+      {/* Update Todo Dialog */}
+      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Update Todo</DialogTitle>
+          </DialogHeader>
+          {selectedTodo && (
+            <UpdateTodoForm
+              todoId={selectedTodo.id}
+              onSuccess={() => {
+                setIsUpdateDialogOpen(false);
+                setSelectedTodo(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Todo Dialog */}
       {selectedTodo && (
-        <EditTodoDialog
-          todo={selectedTodo}
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+        <DeleteTodoDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          todoId={selectedTodo.id}
+          description={selectedTodo.description}
+          onSuccess={() => {
+            setIsDeleteDialogOpen(false);
+            setSelectedTodo(null);
+          }}
         />
       )}
     </>

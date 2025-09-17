@@ -1,6 +1,3 @@
-import { FC, useState } from "react";
-import { Trash2 } from "lucide-react";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,50 +7,57 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useDeleteTodo } from "@/api/todos";
-import { Todo } from "@/lib/validators";
+import { useState } from "react";
 
-interface DeleteTodoAlertDialogProps {
-  todo: Todo;
+interface DeleteTodoDialogProps {
+  todoId: string;
+  description: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export const DeleteTodoAlertDialog: FC<DeleteTodoAlertDialogProps> = ({ todo }) => {
-  const [open, setOpen] = useState(false);
+export const DeleteTodoDialog = ({
+  todoId,
+  description,
+  open,
+  onOpenChange,
+  onSuccess,
+}: DeleteTodoDialogProps) => {
   const deleteTodoMutation = useDeleteTodo();
 
   const handleDelete = () => {
-    deleteTodoMutation.mutate(todo.id, {
-      onSuccess: () => {
-        setOpen(false);
-      },
-    });
+    deleteTodoMutation.mutate(
+      { id: todoId },
+      {
+        onSuccess: () => {
+          onSuccess?.();
+          onOpenChange(false);
+        },
+      }
+    );
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your todo:
-            <br />
-            <strong>"{todo.description}"</strong>
+            This action cannot be undone. This will permanently delete the todo
+            <span className="font-semibold">{` "${description}" `}</span>
+            from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteTodoMutation.isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleteTodoMutation.isPending}
-            className="bg-red-500 hover:bg-red-600"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             {deleteTodoMutation.isPending ? "Deleting..." : "Delete"}
           </AlertDialogAction>

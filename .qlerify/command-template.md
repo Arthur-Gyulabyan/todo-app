@@ -28,6 +28,7 @@ You will receive:
 4. **Implementation**
    - Assume that Entity classes (e.g., `new Todo(...)`) expect objects whose property names and casing already match the OpenAPI specification's schemas. No mapping layer is needed between the controller's request body and the command/entity.
    - Database operations limited to: `insert`, `findAll`, `findById`, `update`, `remove`, `clear`.
+   - For all database operations (e.g., `insert`, `findById`), the collection name (the first argument) **MUST** be the exact string from the `name` field of the associated entity, found in the "Related Entity Information" section.
    - Use `uuid` to generate IDs for Create operations.
    - Database updates must use the corresponding Entity class.
    - Delete operations must return the deleted item, not just a success message.

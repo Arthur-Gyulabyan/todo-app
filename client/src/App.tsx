@@ -3,8 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import NotFound from "./pages/NotFound"; // Keep NotFound
-import TodosPage from "./pages/TodosPage"; // New TodosPage
+import NotFound from "./pages/NotFound";
+import DashboardPage from "./pages/DashboardPage"; // Corrected import path
 
 const queryClient = new QueryClient();
 
@@ -15,7 +15,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<TodosPage />} /> {/* Our main page */}
+          <Route path="/" element={<DashboardPage />} /> {/* Dashboard is now the root */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

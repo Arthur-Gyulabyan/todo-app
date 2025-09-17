@@ -1,19 +1,32 @@
-import { ReactNode } from "react";
+import { HTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
-interface PageHeaderProps {
+interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   description?: string;
-  actions?: ReactNode;
+  actions?: React.ReactNode;
 }
 
-export const PageHeader = ({ title, description, actions }: PageHeaderProps) => {
+export const PageHeader = ({
+  title,
+  description,
+  actions,
+  className,
+  ...props
+}: PageHeaderProps) => {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 pb-4 mb-6 border-b">
-      <div className="space-y-1">
-        <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0",
+        className
+      )}
+      {...props}
+    >
+      <div className="flex-1">
+        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
-      {actions && <div className="flex items-center space-x-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
   );
 };

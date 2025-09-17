@@ -27,6 +27,7 @@ You will receive:
    - Use the `dataFields` marked with `type: 'filter'` to construct the route's path parameters. Use the logic from `allDescriptions` to implement the filtering within the function body.
    - Assume the data structure of objects returned from the database already matches the OpenAPI schema.
    - Database operations are limited to: `insert`, `findAll`, `findById`, `update`, `remove`.
+   - For all database operations (e.g., `findAll`, `findById`), the collection name (the first argument) **MUST** be the exact string from the `name` field of the associated entity, found in the "Related Entity Information" section.
    - Controller must export both `routeBase` and `router`.
    - Route must match the read model name in **lowercase kebab-case** (e.g. `/get-all-todos`).
    - Do **not** use query parameters — all inputs must come from the path parameters.

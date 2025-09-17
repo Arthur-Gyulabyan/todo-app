@@ -7,12 +7,7 @@ router.post('/', async (req, res) => {
   try {
     const { id, description, dueDate, priority } = req.body;
 
-    const result = await UpdateTodoDescriptionCommand.execute({
-      id,
-      description,
-      dueDate,
-      priority,
-    });
+    const result = await UpdateTodoDescriptionCommand.execute({ id, description, dueDate, priority });
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });

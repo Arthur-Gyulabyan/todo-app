@@ -1,48 +1,38 @@
-type HttpMethod = 'GET' | 'POST';
-
-const BASE_URL = '/api/v1';
+const BASE_URL = "/api/v1";
 
 interface RequestOptions extends RequestInit {
-  body?: Record<string, unknown>;
+  data?: unknown;
 }
 
-async function request<T>(
-  method: HttpMethod,
-  path: string,
-  options?: RequestOptions
-): Promise<T> {
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options?.headers,
-  };
-
-  const config: RequestInit = {
-    method,
-    headers,
-    ...options,
-  };
-
-  if (options?.body) {
-    config.body = JSON.stringify(options.body);
-  }
-
-  const response = await fetch(`${BASE_URL}${path}`, config);
-
+const handleResponse = async (response: Response) => {
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'An API error occurred');
+    throw new Error(errorData.message || `API error: ${response.statusText}`);
   }
-
-  // Handle cases where the response might be empty (e.g., successful delete with 204 No Content)
-  if (response.status === 204) {
-    return {} as T;
-  }
-
-  return response.json() as Promise<T>;
-}
+  return response.json();
+};
 
 export const api = {
-  get: <T>(path: string, options?: RequestOptions) => request<T>('GET', path, options),
-  post: <T>(path: string, body: Record<string, unknown>, options?: RequestOptions) =>
-    request<T>('POST', path, { ...options, body }),
+  get: async <T>(path: string): Promise<T> => {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return handleResponse(response);
+  },
+
+  post: async <T>(path: string, data: unknown): Promise<T> => {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+  // Add put, delete, patch if needed based on the OpenAPI spec.
+  // For this spec, update and delete are POST requests, so no other methods are strictly needed.
 };

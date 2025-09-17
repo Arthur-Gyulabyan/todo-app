@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Todo API Specification
-  version: '262'
+  version: '278'
   description: API documentation for the Todo bounded context.
 servers:
   - url: /api/v1
@@ -32,28 +32,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateTodoRequest'
-  /complete-todo:
-    post:
-      summary: Complete Todo
-      description: Executes the "Complete Todo" command. ...
-      operationId: completeTodo
-      tags:
-        - Todo
-      responses:
-        '200':
-          description: 'OK: The resource was updated successfully.'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Todo'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CompleteTodoRequest'
   /delete-todo:
     post:
       summary: Delete Todo
@@ -166,10 +144,6 @@ components:
           type: string
           description: The priority of the Todo.
           example: High
-        isCompleted:
-          type: string
-          description: The isCompleted of the Todo.
-          example: 'true'
       required:
         - id
         - description
@@ -191,17 +165,6 @@ components:
       required:
         - id
         - description
-    CompleteTodoRequest:
-      type: object
-      properties:
-        id:
-          type: string
-          example: todo-abc-123
-        isCompleted:
-          type: string
-          example: 'true'
-      required:
-        - id
     DeleteTodoRequest:
       type: object
       properties:
