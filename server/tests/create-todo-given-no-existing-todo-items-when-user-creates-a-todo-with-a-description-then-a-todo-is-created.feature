@@ -1,6 +1,6 @@
-Feature: Create Todo
+Feature: Todo
 
-  Scenario: Given no existing Todo items. When user creates a Todo with a description. Then a Todo is Created.
-    Given no existing Todo items
-    When user creates a Todo with a description
-    Then a Todo is Created
+Scenario: Given no existing Todo items. When user creates a Todo with a description. Then a Todo is Created.
+  Given no existing Todo items.
+  When user creates a Todo with a description.
+  Then a Todo is Created.

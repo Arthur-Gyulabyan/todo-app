@@ -2,49 +2,44 @@ import { ReactNode } from "react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export type Column<T extends object> = {
+type Column<T> = {
   header: string;
-  accessor?: keyof T;
   className?: string;
-  cell?: (row: T) => ReactNode;
+  cell: (row: T) => ReactNode;
 };
 
-type DataTableProps<T extends object> = {
+type DataTableProps<T> = {
+  data?: T[];
   columns: Column<T>[];
-  data: T[];
+  rowKey?: (row: T, index: number) => string;
   isLoading?: boolean;
-  caption?: string;
   emptyMessage?: string;
-  rowKey: (row: T, index: number) => string;
-  skeletonRows?: number;
+  className?: string;
 };
 
-export function DataTable<T extends object>({
-  columns,
+export function DataTable<T>({
   data,
-  isLoading,
-  caption,
-  emptyMessage = "No data to display.",
+  columns,
   rowKey,
-  skeletonRows = 5,
+  isLoading,
+  emptyMessage = "No data available.",
+  className,
 }: DataTableProps<T>) {
   return (
-    <div className="w-full overflow-x-auto rounded-md border">
+    <div className={cn("w-full overflow-x-auto rounded-md border", className)}>
       <Table>
-        {caption && <TableCaption>{caption}</TableCaption>}
         <TableHeader>
           <TableRow>
             {columns.map((col, idx) => (
-              <TableHead key={idx} className={cn(col.className)}>
+              <TableHead key={idx} className={col.className}>
                 {col.header}
               </TableHead>
             ))}
@@ -52,31 +47,29 @@ export function DataTable<T extends object>({
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            Array.from({ length: skeletonRows }).map((_, i) => (
+            Array.from({ length: 5 }).map((_, i) => (
               <TableRow key={`skeleton-${i}`}>
                 {columns.map((_, j) => (
-                  <TableCell key={`s-${i}-${j}`}>
-                    <Skeleton className="h-4 w-full" />
+                  <TableCell key={`skeleton-cell-${i}-${j}`}>
+                    <Skeleton className="h-5 w-full" />
                   </TableCell>
                 ))}
               </TableRow>
             ))
-          ) : data.length === 0 ? (
+          ) : data && data.length > 0 ? (
+            data.map((row, i) => (
+              <TableRow key={rowKey ? rowKey(row, i) : String(i)}>
+                {columns.map((col, j) => (
+                  <TableCell key={`cell-${i}-${j}`}>{col.cell(row)}</TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="text-center text-muted-foreground">
+              <TableCell colSpan={columns.length} className="py-10 text-center text-sm text-muted-foreground">
                 {emptyMessage}
               </TableCell>
             </TableRow>
-          ) : (
-            data.map((row, i) => (
-              <TableRow key={rowKey(row, i)}>
-                {columns.map((col, idx) => (
-                  <TableCell key={`${rowKey(row, i)}-${idx}`} className={cn(col.className)}>
-                    {col.cell ? col.cell(row) : (row[col.accessor as keyof T] as ReactNode)}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
           )}
         </TableBody>
       </Table>

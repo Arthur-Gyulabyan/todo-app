@@ -1,141 +1,164 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  CreateTodoInput,
+  createTodoSchema,
+} from "@/lib/validators";
+import { useCreateTodo } from "@/api/todos";
+import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCreateTodo } from "@/api/todos";
-import { CreateTodoInput, createTodoSchema } from "@/lib/validators";
-import { toast } from "@/hooks/use-toast";
-import { Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const priorities = ["Low", "Medium", "High"];
+type Props = {
+  trigger?: React.ReactNode;
+};
 
-export default function CreateTodoDialog() {
+export default function CreateTodoDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false);
-  const { mutateAsync, isPending } = useCreateTodo();
-
-  const form = useForm<z.infer<typeof createTodoSchema>>({
+  const form = useForm<CreateTodoInput>({
     resolver: zodResolver(createTodoSchema),
     defaultValues: {
       description: "",
-      dueDate: "",
-      priority: "",
+      dueDate: undefined,
+      priority: undefined,
     },
   });
 
-  const onSubmit = async (values: CreateTodoInput) => {
-    try {
-      // Clean empty strings to undefined
-      const payload: CreateTodoInput = {
-        description: values.description,
-        ...(values.dueDate ? { dueDate: values.dueDate } : {}),
-        ...(values.priority ? { priority: values.priority } : {}),
-      };
-      await mutateAsync(payload);
-      toast({
-        title: "Todo created",
-        description: "Your todo has been created successfully.",
-      });
-      setOpen(false);
-      form.reset();
-    } catch (err: any) {
-      toast({
-        title: "Failed to create todo",
-        description: err?.message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    }
+  const createMutation = useCreateTodo();
+
+  const onSubmit = (values: CreateTodoInput) => {
+    const payload: CreateTodoInput = {
+      ...values,
+      // Normalize dueDate to ISO string if provided
+      dueDate: values.dueDate ? new Date(values.dueDate).toISOString() : undefined,
+    };
+    createMutation.mutate(payload, {
+      onSuccess: () => {
+        toast({ description: "Todo created successfully" });
+        form.reset();
+        setOpen(false);
+      },
+      onError: (err: any) => {
+        toast({ description: err?.message || "Failed to create todo" });
+      },
+    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !isPending && setOpen(o)}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          New Todo
-        </Button>
+        {trigger ?? <Button size="sm">New Todo</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create Todo</DialogTitle>
+          <DialogDescription>Add a new todo to your list</DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="grid gap-4"
-        >
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              placeholder="What needs to be done?"
-              {...form.register("description")}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Plan weekly team meeting" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.description && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.description.message}
-              </p>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="dueDate">Due Date</Label>
-            <Input
-              id="dueDate"
-              type="datetime-local"
-              {...form.register("dueDate")}
-            />
-            {form.formState.errors.dueDate && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.dueDate.message as string}
-              </p>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Priority</Label>
-            <Select
-              value={form.watch("priority") || ""}
-              onValueChange={(v) => form.setValue("priority", v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent>
-                {priorities.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {p}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {form.formState.errors.priority && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.priority.message as string}
-              </p>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating..." : "Create"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        value={field.value ? toLocalInputValue(field.value) : ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priority</FormLabel>
+                    <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Low">Low</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={createMutation.isPending} className="w-full sm:w-auto">
+                {createMutation.isPending ? "Creating..." : "Create"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
+}
+
+function toLocalInputValue(value: string) {
+  try {
+    // Accept both ISO and local input; convert ISO to local input string
+    const d = new Date(value);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const MM = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mm = pad(d.getMinutes());
+    return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
+  } catch {
+    return value;
+  }
 }

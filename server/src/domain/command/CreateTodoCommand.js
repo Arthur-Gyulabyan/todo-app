@@ -3,11 +3,9 @@ import Todo from '../entity/Todo.js';
 import db from '../../infrastructure/db/index.js';
 
 class CreateTodoCommand {
-  static async execute({ description, dueDate, priority } = {}) {
+  static async execute({ description, dueDate, priority }) {
     if (typeof description !== 'string' || description.trim() === '') {
-      const error = new Error('description is required');
-      error.status = 400;
-      throw error;
+      throw new Error('description is required');
     }
 
     const todo = new Todo({

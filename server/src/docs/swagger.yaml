@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Todo API Specification
-  version: '307'
+  version: '315'
   description: API documentation for the Todo bounded context.
 servers:
   - url: /api/v1
@@ -156,9 +156,6 @@ components:
     CreateTodoRequest:
       type: object
       properties:
-        id:
-          type: string
-          example: todo-abc-123
         description:
           type: string
           example: Plan weekly team meeting
@@ -169,7 +166,6 @@ components:
           type: string
           example: High
       required:
-        - id
         - description
     DeleteTodoRequest:
       type: object

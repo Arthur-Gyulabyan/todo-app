@@ -1,78 +1,75 @@
-import PageHeader from "@/components/shared/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo } from "react";
 import { useGetTodos } from "@/api/todos";
-import { CheckCircle2, Clock3, ListTodo } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import PageHeader from "@/components/shared/PageHeader";
+import TodoTable from "@/features/todos/TodoTable";
 import CreateTodoDialog from "@/features/todos/CreateTodoDialog";
-import TodosTable from "@/features/todos/TodosTable";
-
-function getStats(todos: { dueDate?: string | null }[]) {
-  const now = new Date();
-  const total = todos.length;
-  let withDue = 0;
-  let overdue = 0;
-
-  for (const t of todos) {
-    if (!t.dueDate) continue;
-    const d = new Date(t.dueDate);
-    if (isNaN(d.getTime())) continue;
-    withDue++;
-    if (d < now) overdue++;
-  }
-
-  return { total, withDue, overdue };
-}
 
 export default function Dashboard() {
-  const { data: todos = [] } = useGetTodos();
-  const stats = getStats(todos);
+  const { data, isLoading } = useGetTodos();
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const total = data?.length ?? 0;
+    const withDue = data?.filter((t) => !!t.dueDate).length ?? 0;
+    const overdue =
+      data?.filter((t) => t.dueDate && new Date(t.dueDate) < now).length ?? 0;
+    const highPriority =
+      data?.filter((t) => (t.priority ?? "").toLowerCase() === "high").length ?? 0;
+    return { total, withDue, overdue, highPriority };
+  }, [data]);
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
       <PageHeader
-        title="Dashboard"
-        description="Manage your todos and keep track of what's next."
-        action={<CreateTodoDialog />}
+        title="Todo Dashboard"
+        description="Manage your todos, track due dates and priorities."
+        actions={
+          <CreateTodoDialog
+            trigger={
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                New Todo
+              </Button>
+            }
+          />
+        }
       />
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Todos</CardTitle>
-            <ListTodo className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">All tracked items</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">With Due Date</CardTitle>
-            <Clock3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.withDue}</div>
-            <p className="text-xs text-muted-foreground">Have a date set</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.overdue}</div>
-            <p className="text-xs text-muted-foreground">Past due date</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard title="Total Todos" value={stats.total} />
+        <StatCard title="With Due Date" value={stats.withDue} />
+        <StatCard
+          title="Overdue"
+          value={stats.overdue}
+          badge={stats.overdue > 0 ? <Badge variant="destructive">Attention</Badge> : undefined}
+        />
+        <StatCard title="High Priority" value={stats.highPriority} />
       </div>
-
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Todos</h2>
-        <TodosTable />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Todos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TodoTable data={data} isLoading={isLoading} />
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+function StatCard({ title, value, badge }: { title: string; value: number | string; badge?: React.ReactNode }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {badge}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+      </CardContent>
+    </Card>
   );
 }

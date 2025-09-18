@@ -3,21 +3,27 @@ import db from '../../infrastructure/db/index.js';
 
 class UpdateTodoDescriptionCommand {
   static async execute({ id, description }) {
-    const existing = await db.findById('Todo', id);
-    if (!existing) {
-      const err = new Error('Todo not found.');
-      err.status = 404;
+    if (!id || typeof id !== 'string') {
+      const err = new Error('id is required');
+      err.status = 400;
+      throw err;
+    }
+    if (typeof description !== 'string') {
+      const err = new Error('description must be a string');
+      err.status = 400;
       throw err;
     }
 
-    const updatedTodo = new Todo({ ...existing, description });
-    const result = await db.update('Todo', id, updatedTodo.toJSON());
-    if (!result) {
-      const err = new Error('Todo not found.');
-      err.status = 404;
+    const existing = await db.findById('Todo', id);
+    if (!existing) {
+      const err = new Error('Todo not found');
+      err.code = 'NOT_FOUND';
       throw err;
     }
-    return result;
+
+    const updatedEntity = new Todo({ ...existing, description });
+    await db.update('Todo', id, updatedEntity.toJSON());
+    return updatedEntity.toJSON();
   }
 }
 
